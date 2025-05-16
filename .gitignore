@@ -37,3 +37,4 @@ build/
 *.log
 *.tmp
 *.swp
+*.pth
