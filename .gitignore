@@ -1,4 +1,3 @@
-
 data/
 
 # Byte-compiled / optimized / DLL files
@@ -13,6 +12,10 @@ __pycache__/
 .venv/
 env/
 venv/
+
+# Network Storage
+data/
+code_local/
 
 # VS Code settings
 .vscode/
@@ -38,3 +41,43 @@ build/
 *.tmp
 *.swp
 *.pth
+
+# === Layout & OCR pipeline artifacts ===
+
+# Model weights
+*.pth
+*.ckpt
+*.pb
+*.onnx
+*.tflite
+*.pt
+*.npz
+models/
+
+# OCR and extracted content
+data/output/
+data/intermediate/
+data/previews/
+data/temp/
+*.jsonl
+*.parsed
+*.ocr.txt
+*.ocr.json
+
+# Input docs (except placeholder)
+data/input_docs/*
+!data/input_docs/README.md
+
+# Annotated previews
+*.annotated.jpg
+*.annotated.png
+annotated_output.jpg
+layout_output.json
+
+# Debugging and dev garbage
+*.prof
+*.trace
+*.bak
+*.swp
+*.tmp
+*.log

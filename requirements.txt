@@ -1,0 +1,27 @@
+# Layout Parsing Core
+layoutparser-private @ git+ssh://git@github.com/Yummyfudge/layoutparser-private.git@0ce8f7411662aec61caddf1aebba8165564387af
+parsing_engine @ git+ssh://git@github.com/Yummyfudge/parsing-engine.git@bc69b06236529a7f30b4982cc8e350fc3a933f42
+detectron2 @ git+https://github.com/facebookresearch/detectron2.git@536dc9d527074e3b15df5f6677ffe1f4e104a4ab
+effdet==0.4.1
+timm==1.0.15
+yacs==0.1.8
+
+# Vision + OCR Tools
+# torch must be installed manually:
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+torchvision==0.22.0
+torchaudio==2.7.0
+Pillow==11.2.1
+numpy==2.0.2
+opencv-python==4.11.0.86
+pdf2image==1.17.0
+pdfminer.six==20250327
+pdfplumber==0.11.6
+pycocotools==2.0.8
+
+# Utility + Output Formatting
+pandas==2.2.3
+scipy==1.13.1
+tqdm==4.67.1
+requests==2.32.3
+urllib3==2.4.0

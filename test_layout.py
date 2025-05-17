@@ -1,42 +1,71 @@
+import json
+import importlib
+import sys
+from pathlib import Path
+
+# Ensure project root is in sys.path for dynamic imports
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+# Load runtime config
+with open("config/runtime_config.json") as f:
+    runtime_config = json.load(f)
+
+SELECTED_MODEL = runtime_config["model"]
+DOCUMENT_TYPE = runtime_config["document_type"]
+PROFILE = runtime_config["profile"]
+
+from layout_models import get_model_config
+model_config = get_model_config(SELECTED_MODEL)
+
+# Dynamically import layout_profiles from the selected document_type and profile
+profile_module_path = f"profiles.document_types.{DOCUMENT_TYPE}.{PROFILE}.layout_profiles"
+profile_module = importlib.import_module(profile_module_path)
+layout_profiles = profile_module.layout_profiles
+selected_profile = layout_profiles.get("default", {})
+
 import layoutparser as lp
 from PIL import Image
 from pathlib import Path
-import json
-
-# 📂 Set input path
-image_path = Path("data/input_docs/sample-page.png")
-
-# Load the image
-image = Image.open(image_path)
+import glob
 
 # Load the layout model
-model = lp.Detectron2LayoutModel(
-    config_path="lp://PubLayNet/faster_rcnn_R_50_FPN_3x/config",
-    label_map={0: "Text", 1: "Title", 2: "List", 3: "Table", 4: "Figure"},
+model = model_config["class"](
+    config_path=model_config["config"],
+    label_map=model_config["label_map"],
     extra_config=["MODEL.ROI_HEADS.SCORE_THRESH_TEST", 0.5],
-    model_path="/Users/jodut/Projects/parsing_engine/models/model_final.pth",
+    model_path=model_config["model_path"],
+    filter_fn=selected_profile.get("filter_fn"),
+    constructor_fn=selected_profile.get("constructor_fn"),
 )
 
-# Run layout detection
-layout = model.detect(image)
+input_dir = Path("data/input_docs")
+output_dir = Path("data/output_results")
+output_dir.mkdir(parents=True, exist_ok=True)
 
-# Collect and print layout block info
-layout_data = []
-for i, block in enumerate(layout):
-    print(f"[{i}] {block.type} at {block.block} (score: {block.score:.2f})")
-    layout_data.append({
-        "id": i,
-        "type": block.type,
-        "bbox": [block.block.x_1, block.block.y_1, block.block.x_2, block.block.y_2],
-        "score": block.score,
-    })
+image_files = sorted(glob.glob(str(input_dir / "*.[pjPJ][pnPN]*")))  # .png, .jpg, .jpeg
 
-# Save JSON output next to the image
-output_path = image_path.parent / "layout_output.json"
-with open(output_path, "w") as f:
-    json.dump(layout_data, f, indent=2)
+for image_path_str in image_files:
+    image_path = Path(image_path_str)
+    print(f"🔍 Processing {image_path.name}...")
 
-# Optional: Save annotated image
-annotated_img_path = image_path.parent / "annotated_output.jpg"
-image_with_boxes = lp.draw_box(image, layout, box_width=2, box_color="red")
-image_with_boxes.save(annotated_img_path)
+    image = Image.open(image_path)
+    layout = model.detect(image)
+
+    layout_data = []
+    for i, block in enumerate(layout):
+        print(f"[{i}] {block.type} at {block.block} (score: {block.score:.2f})")
+        layout_data.append({
+            "id": i,
+            "type": block.type,
+            "bbox": [block.block.x_1, block.block.y_1, block.block.x_2, block.block.y_2],
+            "score": block.score,
+        })
+
+    json_output_path = output_dir / f"{image_path.stem}_layout_output.json"
+    annotated_img_path = output_dir / f"{image_path.stem}_annotated.jpg"
+
+    with open(json_output_path, "w") as f:
+        json.dump(layout_data, f, indent=2)
+
+    image_with_boxes = lp.draw_box(image, layout, box_width=2, box_color="red")
+    image_with_boxes.save(annotated_img_path)

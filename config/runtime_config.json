@@ -1,0 +1,5 @@
+{
+  "model": "efficientdet",
+  "document_type": "test_doc_two",
+  "profile": "tables"
+}
