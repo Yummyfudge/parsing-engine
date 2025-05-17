@@ -72,3 +72,5 @@ This will:
 - Large files like model weights are stored in `code_local/` and mounted from NAS
 - Profiles can define multiple strategies per document type
 - Each profile can inject logic to control layout filtering, block construction, or postprocessing
+
+- This flexibility ensures the engine adapts easily to new document layouts.
