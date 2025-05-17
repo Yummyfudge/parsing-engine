@@ -9,6 +9,7 @@ yacs==0.1.8
 # Vision + OCR Tools
 # torch must be installed manually:
 # pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+# torch==2.1.2 --index-url https://download.pytorch.org/whl/cpu
 torchvision==0.22.0
 torchaudio==2.7.0
 Pillow==11.2.1

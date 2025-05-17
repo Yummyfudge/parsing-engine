@@ -2,6 +2,7 @@ import json
 import importlib
 import sys
 from pathlib import Path
+import inspect
 
 # Ensure project root is in sys.path for dynamic imports
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -18,7 +19,7 @@ from layout_models import get_model_config
 model_config = get_model_config(SELECTED_MODEL)
 
 # Dynamically import layout_profiles from the selected document_type and profile
-profile_module_path = f"profiles.document_types.{DOCUMENT_TYPE}.{PROFILE}.layout_profiles"
+profile_module_path = f"profiles.{DOCUMENT_TYPE}.{PROFILE}.layout_profiles"
 profile_module = importlib.import_module(profile_module_path)
 layout_profiles = profile_module.layout_profiles
 selected_profile = layout_profiles.get("default", {})
@@ -28,15 +29,23 @@ from PIL import Image
 from pathlib import Path
 import glob
 
-# Load the layout model
-model = model_config["class"](
-    config_path=model_config["config"],
-    label_map=model_config["label_map"],
-    extra_config=["MODEL.ROI_HEADS.SCORE_THRESH_TEST", 0.5],
-    model_path=model_config["model_path"],
-    filter_fn=selected_profile.get("filter_fn"),
-    constructor_fn=selected_profile.get("constructor_fn"),
-)
+# Load the layout model in a modular, backend-agnostic way
+model_class = model_config["class"]
+init_args = inspect.signature(model_class.__init__).parameters
+
+kwargs = {
+    "config_path": model_config["config"],
+    "label_map": model_config["label_map"],
+    "extra_config": ["MODEL.ROI_HEADS.SCORE_THRESH_TEST", 0.5],
+    "model_path": model_config["model_path"],
+}
+
+if "filter_fn" in init_args:
+    kwargs["filter_fn"] = selected_profile.get("filter_fn")
+if "constructor_fn" in init_args:
+    kwargs["constructor_fn"] = selected_profile.get("constructor_fn")
+
+model = model_class(**kwargs)
 
 input_dir = Path("data/input_docs")
 output_dir = Path("data/output_results")
@@ -67,5 +76,5 @@ for image_path_str in image_files:
     with open(json_output_path, "w") as f:
         json.dump(layout_data, f, indent=2)
 
-    image_with_boxes = lp.draw_box(image, layout, box_width=2, box_color="red")
+    image_with_boxes = layout.draw(image, box_width=2, box_color="red")
     image_with_boxes.save(annotated_img_path)

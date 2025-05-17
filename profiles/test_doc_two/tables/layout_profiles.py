@@ -7,6 +7,10 @@ from .layout_hooks import (
 )
 
 layout_profiles = {
+    "default": {
+        "filter_fn": keep_tables_only,
+        "constructor_fn": construct_labelled_block
+    },
     "tables_only": {
         "filter_fn": keep_tables_only,
         "constructor_fn": construct_labelled_block
